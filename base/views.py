@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from .models import Room, Topic, Message
-from .forms import RoomForm
+from .forms import RoomForm, UserForm
 
 # rooms = [
 #     {'id': 1, 'name': 'Lets learn python'},
@@ -112,16 +112,16 @@ def userProfile(request, pk):
 
 @login_required(login_url='login')
 def updateUser(request, pk):
-    user = User.objects.get(id=pk)
-    form = UserChangeForm()
+    user = request.user
+    form = UserForm(instance=user)
     if request.method == 'POST':
-        form = UserChangeForm(request.POST)
+        form = UserForm(request.POST, instance=user)
         if form.is_valid():
             user = form.save(commit=False)
             username = form.cleaned_data.get('username')
             user.save()
             messages.success(request, 'Account was updated for ' + username)
-            return redirect('home')
+            return redirect('user-profile', pk=user.id)
         else:
             messages.error(request, 'An error has occured during registration')
     context = {'form': form, 'user': user}
